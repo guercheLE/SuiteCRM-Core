@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: suitecrm
+      MARIADB_USER: suitecrm
+      MARIADB_PASSWORD: suitecrm
+      MARIADB_ROOT_PASSWORD: rootpass
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  suitecrm:
+    build:
+      context: .
+    image: guerchele/suitecrm:8-latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      APP_ENV: prod
+      APP_SECRET: change-this-secret
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: suitecrm
+      DB_USER: suitecrm
+      DB_PASSWORD: suitecrm
+      SITE_URL: http://localhost:8080
+      TZ: UTC
+      PHP_MEMORY_LIMIT: 512M
+      UPLOAD_MAX_FILESIZE: 50M
+      POST_MAX_SIZE: 50M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - suitecrm_logs:/var/www/html/logs
+      - suitecrm_tmp:/var/www/html/tmp
+      - suitecrm_upload:/var/www/html/public/legacy/upload
+
+volumes:
+  db_data:
+  suitecrm_logs:
+  suitecrm_tmp:
+  suitecrm_upload:

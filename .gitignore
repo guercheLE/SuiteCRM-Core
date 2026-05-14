@@ -71,3 +71,5 @@ composer.phar
 # SASS
 /public/legacy/themes/suite8/css/Dawn/style.css
 /public/legacy/themes/suite8/css/Noon/style.css
+
+build.log build_output.log buildx-final.log buildx-push.log
